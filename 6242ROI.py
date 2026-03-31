@@ -25,7 +25,7 @@ def solar_roi_analysis_region(
     city,
     state,
     region,
-    ghi,
+    hourly_ghi,
     panel_wattage=400, 
     num_panels=20,
     performance_loss=0.2,
@@ -39,26 +39,24 @@ def solar_roi_analysis_region(
 
     #Apply performance losses and Convert irradiance to kWh
     system_efficiency = 1 - performance_loss 
-    annual_production = ghi * system_size_kw * system_efficiency
+    
+    # Sum hourly GHI to get annual total
+    hourly_production = [max(0, ghi) * system_size_kw * system_efficiency for ghi in hourly_ghi]
+    annual_production = sum(hourly_production)
 
-    yearly_production = []
-    cumulative_savings = []
     total_savings = 0
     payback_year = None
-    current_production = annual_production
+    yearly_production = annual_production #first year
 
     #Loop over each year
     for year in range(1, system_lifetime + 1):
         if year > 1:
-            current_production *= (1 - degradation_rate) # apply yearly degradation
+            yearly_production *= (1 - degradation_rate) # apply yearly degradation
 
         #Calculate annual savings with local utility cost
-        savings = current_production * electricity_price
+        yearly_savings = yearly_production * electricity_price
         #Get cumulative yearly savings to get payback year
-        total_savings += savings
-
-        yearly_production.append(current_production)
-        cumulative_savings.append(total_savings)
+        total_savings += yearly_savings
 
         if payback_year is None and total_savings >= installation_cost:
             payback_year = year
@@ -76,12 +74,18 @@ def solar_roi_analysis_region(
 
     return result
 
-#example test
+# Example usage
+hourly_ghi_example = [
+    1.68, 6.30, 3.27, 5.33, -0.90, 1.92, 36.51, 126.67, 288.68, 382.44,
+    461.40, 511.84, 563.56, 522.25, 585.75, 364.38, 153.43, 6.26, 11.42, -8.78,
+    18.52, 5.09, -3.26, 1.91
+]  # example: first 24 hours
+
 result = solar_roi_analysis_region(
     city="San Diego",
     state="CA",
     region="Pacific Coast",
-    ghi=2100,
+    hourly_ghi=hourly_ghi_example,
     panel_wattage=400,
     num_panels=20,
     performance_loss=0.2,
@@ -89,4 +93,5 @@ result = solar_roi_analysis_region(
     system_lifetime=25
 )
 
-print(result) #{'City': 'San Diego', 'State': 'CA', 'Annual_Production': 13440.0, 'Payback_Years': 8, 'ROI': 2.041558050464617}
+print(result)
+#{'City': 'San Diego', 'State': 'CA', 'Annual_Production': 25892.288, 'Payback_Years': 5, 'ROI': 4.859590551439614}
