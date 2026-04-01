@@ -4,7 +4,6 @@ import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 
 from components.map import render_map
-from components.plots import plot_one, plot_two, plot_three
 from components.roi_calculator import calculate_roi_data, plot_breakeven
 from data.region_states import REGION_STATES, REGION_COLORS
 
@@ -28,7 +27,6 @@ st.markdown(
         font-family: 'Syne', sans-serif;
     }
 
-    /* Sidebar */
     section[data-testid="stSidebar"] {
         background-color: #10101f !important;
         border-right: 1px solid #1e1e3a;
@@ -38,7 +36,6 @@ st.markdown(
         color: #c0c0e8 !important;
     }
 
-    /* Title */
     .dashboard-title {
         font-family: 'Syne', sans-serif;
         font-size: 2.2rem;
@@ -56,7 +53,6 @@ st.markdown(
         letter-spacing: 1px;
     }
 
-    /* Cards & Containers */
     .stat-card {
         background-color: #13132a;
         border: 1px solid #1e1e3a;
@@ -115,16 +111,15 @@ with st.sidebar:
     )
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown('<div class="sidebar-header">Data Points</div>', unsafe_allow_html=True)
-    int_val = st.slider("Simulated readings", 10, 100, 50, label_visibility="collapsed")
+    st.markdown('<div class="sidebar-header">System Inputs</div>', unsafe_allow_html=True)
+    num_panels = st.slider("Number of Solar Panels (400W)", 5, 50, 20, step=1)
     
-    # ---> ADDED FINANCIAL INPUTS HERE <---
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="sidebar-header">Financial Inputs</div>', unsafe_allow_html=True)
     monthly_bill = st.slider("Monthly Electric Bill ($)", 50, 500, 150, step=10)
-    system_cost = st.number_input("Estimated System Cost ($)", min_value=5000, value=15000, step=1000)
+    system_cost = st.number_input("Estimated System Cost ($)", min_value=3000, value=(num_panels*800), step=500)
 
-# ── Main Content ──────────────────────────────────────────────────────────────
+# ── Main Content (Always Shows Map) ───────────────────────────────────────────
 st.markdown('<div class="dashboard-title">US Regional Dashboard</div>', unsafe_allow_html=True)
 st.markdown('<div class="dashboard-subtitle">Real-time macro analysis console</div>', unsafe_allow_html=True)
 
@@ -158,24 +153,24 @@ with col_stats:
             unsafe_allow_html=True,
         )
 
-# ── Plots section ─────────────────────────────────────────────────────────────
+# ── Plots section (Only shows if region is selected) ─────────────────────────
 st.markdown(
     '<div class="plot-header">▸ ROI & Financial Analysis</div>',
     unsafe_allow_html=True,
 )
 
 if selected_region:
-    # sliders
-    roi_data = calculate_roi_data(monthly_bill, system_cost)
+    # 1. Run the ML-integrated math
+    roi_data = calculate_roi_data(monthly_bill, system_cost, num_panels, selected_region)
     
-    # breakeven Chart
+    # 2. Show the Breakeven Chart
     st.plotly_chart(
         plot_breakeven(roi_data, selected_region),
         use_container_width=True,
         config={"displayModeBar": False},
     )
     
-    #Summary Metrics 
+    # 3. Show the metrics
     m1, m2, m3 = st.columns(3)
     net_savings = roi_data['Utility'].iloc[-1] - roi_data['Solar'].iloc[-1]
     
@@ -186,6 +181,7 @@ if selected_region:
     with m3:
         st.metric("Estimated Net Savings", f"${int(net_savings):,}")
 else:
+    # What the user sees before selecting a region (exactly like your teammate had it)
     st.markdown(
         '<div style="color:#8a8a9a; font-family:\'Share Tech Mono\', monospace; text-align:center; padding: 40px; border: 1px dashed #1e1e3a; border-radius: 8px;">'
         'Select a region from the sidebar to view detailed analytics.'
