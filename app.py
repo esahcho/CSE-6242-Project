@@ -27,6 +27,7 @@ st.markdown(
         font-family: 'Syne', sans-serif;
     }
 
+    /* Sidebar */
     section[data-testid="stSidebar"] {
         background-color: #10101f !important;
         border-right: 1px solid #1e1e3a;
@@ -36,59 +37,86 @@ st.markdown(
         color: #c0c0e8 !important;
     }
 
+    /* Title */
     .dashboard-title {
         font-family: 'Syne', sans-serif;
-        font-size: 2.2rem;
         font-weight: 800;
-        color: #ffffff;
-        margin-bottom: -10px;
+        font-size: 2.2rem;
         letter-spacing: -0.5px;
+        background: linear-gradient(90deg, #7c7cff 0%, #c084fc 60%, #38bdf8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0;
     }
-    .dashboard-subtitle {
+    .dashboard-sub {
         font-family: 'Share Tech Mono', monospace;
-        color: #7c7cff;
-        font-size: 0.9rem;
-        margin-bottom: 20px;
+        font-size: 0.78rem;
+        color: #4a4a7a;
+        margin-top: 2px;
+        letter-spacing: 2px;
         text-transform: uppercase;
-        letter-spacing: 1px;
     }
 
+    /* Region badge */
+    .region-badge {
+        display: inline-block;
+        padding: 6px 18px;
+        border-radius: 4px;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-top: 8px;
+    }
+
+    /* Stat cards */
     .stat-card {
-        background-color: #13132a;
+        background: #13132a;
         border: 1px solid #1e1e3a;
         border-radius: 8px;
-        padding: 15px 20px;
-        margin-bottom: 15px;
+        padding: 16px 20px;
+        margin-bottom: 10px;
+        font-family: 'Share Tech Mono', monospace;
     }
     .stat-label {
-        font-family: 'Share Tech Mono', monospace;
-        font-size: 0.8rem;
-        color: #8a8a9a;
+        font-size: 0.7rem;
+        color: #4a4a7a;
         text-transform: uppercase;
+        letter-spacing: 2px;
     }
     .stat-value {
-        font-family: 'Syne', sans-serif;
-        font-size: 1.8rem;
-        font-weight: 700;
+        font-size: 1.6rem;
         color: #e0e0ff;
-        margin-top: 5px;
+        margin-top: 4px;
     }
+
+    /* Divider */
+    hr { border-color: #1e1e3a; }
+
+    /* Plot section header */
     .plot-header {
         font-family: 'Share Tech Mono', monospace;
-        font-size: 1.1rem;
-        color: #ffffff;
-        border-bottom: 1px solid #1e1e3a;
-        padding-bottom: 10px;
-        margin-top: 40px;
-        margin-bottom: 20px;
-    }
-    .sidebar-header {
-        font-size: 0.85rem;
-        color: #8a8a9a !important;
+        font-size: 0.7rem;
+        color: #4a4a7a;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: -10px;
+        letter-spacing: 3px;
+        margin: 24px 0 12px 0;
+        border-top: 1px solid #1e1e3a;
+        padding-top: 20px;
     }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        font-family: 'Share Tech Mono', monospace;
+        color: #2a2a4a;
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+    }
+
+    /* Hide Streamlit branding */
+    #MainMenu, footer, header {visibility: hidden;}
     </style>
     """,
     unsafe_allow_html=True,
@@ -96,46 +124,79 @@ st.markdown(
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown(
-        '<div style="font-size: 1.5rem; font-weight: 800; color: #fff; font-family: \'Syne\', sans-serif; margin-bottom: 30px;">⚡ GRID_VIEW</div>',
-        unsafe_allow_html=True,
+    st.markdown("### 🗺️ Controls")
+    st.markdown("---")
+
+    num_panels = st.slider(
+        "Number of Solar Panels (400W)",
+        min_value=1,
+        max_value=100,
+        value=20,
+        step=1,
     )
 
-    st.markdown('<div class="sidebar-header">Region Selector</div>', unsafe_allow_html=True)
-    region_opts = [None] + list(REGION_STATES.keys())
+    st.markdown("")
+
+    region_options = list(REGION_STATES.keys())
     selected_region = st.selectbox(
-        "Select a region to focus",
-        options=region_opts,
-        format_func=lambda x: "All Regions (USA)" if x is None else x,
-        label_visibility="collapsed"
+        "Region",
+        options=["— select a region —"] + region_options,
+        index=0,
     )
+    if selected_region == "— select a region —":
+        selected_region = None
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown('<div class="sidebar-header">System Inputs</div>', unsafe_allow_html=True)
-    num_panels = st.slider("Number of Solar Panels (400W)", 5, 50, 20, step=1)
+    st.markdown("---")
     
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown('<div class="sidebar-header">Financial Inputs</div>', unsafe_allow_html=True)
+    st.markdown("### 💰 Financials")
     monthly_bill = st.slider("Monthly Electric Bill ($)", 50, 500, 150, step=10)
-    system_cost = st.number_input("Estimated System Cost ($)", min_value=3000, value=(num_panels*800), step=500)
+    system_cost = st.number_input("System Cost ($)", min_value=3000, value=(num_panels*800), step=500)
 
-# ── Main Content (Always Shows Map) ───────────────────────────────────────────
-st.markdown('<div class="dashboard-title">US Regional Dashboard</div>', unsafe_allow_html=True)
-st.markdown('<div class="dashboard-subtitle">Real-time macro analysis console</div>', unsafe_allow_html=True)
+    st.markdown("---")
 
-col_map, col_stats = st.columns([3, 1], gap="large")
+    if selected_region:
+        accent = REGION_COLORS[selected_region]
+        st.markdown(
+            f'<div class="region-badge" style="background:{accent}22; '
+            f'border:1px solid {accent}; color:{accent};">'
+            f"▶ {selected_region}</div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            f"**{len(REGION_STATES[selected_region])} states** included",
+        )
+        st.markdown(" · ".join(REGION_STATES[selected_region]))
+    else:
+        st.caption("Select a region to highlight it on the map and generate plots.")
 
-with col_map:
+# ── Main ──────────────────────────────────────────────────────────────────────
+st.markdown(
+    '<p class="dashboard-title">US Solar Panel ROI</p>',
+    unsafe_allow_html=True,
+)
+st.markdown("<hr>", unsafe_allow_html=True)
+
+map_col, info_col = st.columns([3, 1], gap="large")
+
+with map_col:
     fig_map = render_map(selected_region)
     st.plotly_chart(fig_map, use_container_width=True, config={"displayModeBar": False})
 
-with col_stats:
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    region_display = selected_region if selected_region else "All Regions"
-    accent_hex = REGION_COLORS.get(selected_region, "#7c7cff") if selected_region else "#e0e0ff"
+with info_col:
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
     st.markdown(
-        f'<div class="stat-card" style="border-left: 4px solid {accent_hex}">'
+        f'<div class="stat-card">'
+        f'<div class="stat-label">Panel Count</div>'
+        f'<div class="stat-value">{num_panels}</div>'
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+    region_display = selected_region if selected_region else "—"
+    accent_hex = REGION_COLORS.get(selected_region, "#4a4a7a") if selected_region else "#4a4a7a"
+    st.markdown(
+        f'<div class="stat-card" style="border-color:{accent_hex}55">'
         f'<div class="stat-label">Selected Region</div>'
         f'<div class="stat-value" style="font-size:1.1rem; color:{accent_hex}; margin-top:6px">'
         f"{region_display}</div>"
@@ -147,30 +208,27 @@ with col_stats:
         states = REGION_STATES[selected_region]
         st.markdown(
             f'<div class="stat-card">'
-            f'<div class="stat-label">States</div>'
+            f'<div class="stat-label">States Included</div>'
             f'<div class="stat-value">{len(states)}</div>'
             f"</div>",
             unsafe_allow_html=True,
         )
 
-# ── Plots section (Only shows if region is selected) ─────────────────────────
+# ── Plots section ─────────────────────────────────────────────────────────────
 st.markdown(
     '<div class="plot-header">▸ ROI & Financial Analysis</div>',
     unsafe_allow_html=True,
 )
 
 if selected_region:
-    # 1. Run the ML-integrated math
     roi_data = calculate_roi_data(monthly_bill, system_cost, num_panels, selected_region)
     
-    # 2. Show the Breakeven Chart
     st.plotly_chart(
         plot_breakeven(roi_data, selected_region),
         use_container_width=True,
         config={"displayModeBar": False},
     )
     
-    # 3. Show the metrics
     m1, m2, m3 = st.columns(3)
     net_savings = roi_data['Utility'].iloc[-1] - roi_data['Solar'].iloc[-1]
     
@@ -181,10 +239,9 @@ if selected_region:
     with m3:
         st.metric("Estimated Net Savings", f"${int(net_savings):,}")
 else:
-    # What the user sees before selecting a region (exactly like your teammate had it)
     st.markdown(
-        '<div style="color:#8a8a9a; font-family:\'Share Tech Mono\', monospace; text-align:center; padding: 40px; border: 1px dashed #1e1e3a; border-radius: 8px;">'
-        'Select a region from the sidebar to view detailed analytics.'
-        '</div>',
-        unsafe_allow_html=True
+        '<div class="empty-state">'
+        "[ select a region from the sidebar to generate analysis ]"
+        "</div>",
+        unsafe_allow_html=True,
     )
