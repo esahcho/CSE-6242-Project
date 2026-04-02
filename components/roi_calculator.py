@@ -72,7 +72,11 @@ def plot_breakeven(roi_df, region):
     
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=roi_df['Year'], y=roi_df['Utility'], name="Utility Cost", line=dict(color="#E63946", width=3)))
-    fig.add_trace(go.Scatter(x=roi_df['Year'], y=roi_df['Solar'], name="Solar Investment", line=dict(color=accent, width=3)))
+    fig.add_trace(go.Scatter(
+        x=roi_df['Year'], y=roi_df['Solar'], 
+        name="Solar Investment", 
+        line=dict(color="#2ecc71", width=3) # <--- Put any color hex code you want here
+    ))
     
     fig.update_layout(
         title=dict(text=f"25-Year ROI Analysis [{region}]", font=dict(color=TEXT_COLOR, size=14, family="monospace")),
