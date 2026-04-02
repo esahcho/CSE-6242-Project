@@ -124,7 +124,7 @@ st.markdown(
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### 🗺️ Controls")
+    st.markdown("Controls")
     st.markdown("---")
 
     num_panels = st.slider(
