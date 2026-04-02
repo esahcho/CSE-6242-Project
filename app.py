@@ -148,7 +148,7 @@ with st.sidebar:
 
     st.markdown("---")
     
-    st.markdown("### Financials")
+    st.markdown("Financials")
     monthly_bill = st.slider("Monthly Electric Bill ($)", 50, 500, 150, step=10)
     system_cost = st.number_input("System Cost ($)", min_value=3000, value=(num_panels*800), step=500)
 
