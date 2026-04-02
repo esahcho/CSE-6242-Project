@@ -4,12 +4,10 @@ import numpy as np
 import os
 from data.region_states import REGION_COLORS
 
-# Teammate's theme colors
 CARD_BG = "#13132a"
 GRID_COLOR = "#1e1e3a"
 TEXT_COLOR = "#e0e0ff"
 
-# Aligning the map regions to the ML data cities
 CITY_MAP = {
     "Pacific Coast": "Los Angeles",
     "South": "Atlanta",
@@ -25,16 +23,16 @@ def calculate_roi_data(monthly_bill, system_cost, num_panels, region, inflation_
     """Generates the 25-year cumulative cost data using actual ML forecasts."""
     city = CITY_MAP.get(region, "Chicago") 
     
-    # Load the Parquet data from your ML models
+    # Parquet data
     try:
         df = pd.read_parquet("gradient_boosting_forecasts_by_city.parquet")
         city_data = df[df['city'] == city]
         total_ghi_3mo = city_data['forecasted_ghi'].sum()
         annual_ghi_estimate = total_ghi_3mo * 4 
     except Exception as e:
-        annual_ghi_estimate = 2000000 # Fallback if file isn't found
+        annual_ghi_estimate = 2000000 # if file isn't found
 
-    # Solar Math Constants
+    # depreciation constants
     panel_wattage_kw = 400 / 1000  
     performance_ratio = 0.8
     degradation_rate = 0.005 
@@ -70,7 +68,6 @@ def calculate_roi_data(monthly_bill, system_cost, num_panels, region, inflation_
     })
 
 def plot_breakeven(roi_df, region):
-    """Generates the Breakeven Plotly chart."""
     accent = REGION_COLORS.get(region, "#7c7cff")
     
     fig = go.Figure()
