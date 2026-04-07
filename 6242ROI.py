@@ -1,4 +1,8 @@
 
+import pandas as pd
+
+df = pd.read_parquet("gradient_boosting_forecasts.parquet")
+
 # Regional electricity prices in $/kWh
 REGIONAL_PRICES = {
     "Pacific Coast": 26.44570043 / 100,  # convert cents to $/kWh
@@ -21,13 +25,17 @@ REGIONAL_INSTALL_COST = {
     "Pacific Northwest": 36125
 }
 
+PANEL_SIZE = {
+    "Small": 10,
+    "Medium": 20,
+    "Large": 30
+}
+
 def solar_roi_analysis_region(
-    city,
-    state,
     region,
     hourly_ghi,
     panel_wattage=400, 
-    num_panels=20,
+    num_panels= "Medium",
     performance_loss=0.2,
     degradation_rate=0.005, 
     system_lifetime=25 #The lifetime of solar panels typically ranges from 25 to 30 years
@@ -35,14 +43,14 @@ def solar_roi_analysis_region(
 
     electricity_price = REGIONAL_PRICES[region]
     installation_cost = REGIONAL_INSTALL_COST[region]
-    system_size_kw = (panel_wattage * num_panels) / 1000  # convert W to kW
+    system_size_kw = (panel_wattage * PANEL_SIZE[num_panels]) / 1000  # convert W to kW
 
     #Apply performance losses and Convert irradiance to kWh
     system_efficiency = 1 - performance_loss 
     
     # Sum hourly GHI to get annual total
     hourly_production = [max(0, ghi) * system_size_kw * system_efficiency for ghi in hourly_ghi]
-    annual_production = sum(hourly_production)
+    annual_production = sum(hourly_production) #first year production
 
     total_savings = 0
     payback_year = None
@@ -61,12 +69,11 @@ def solar_roi_analysis_region(
         if payback_year is None and total_savings >= installation_cost:
             payback_year = year
 
-    #Subtract installation cost
+    #roi is the life time (25 years) saving - installation cost
     roi = (total_savings - installation_cost) / installation_cost
 
     result = {
-        "City": city,
-        "State": state,
+        "Region": region,
         "Annual_Production": annual_production,
         "Payback_Years": payback_year,
         "ROI": roi
@@ -74,24 +81,20 @@ def solar_roi_analysis_region(
 
     return result
 
-# Example usage
-hourly_ghi_example = [
-    1.68, 6.30, 3.27, 5.33, -0.90, 1.92, 36.51, 126.67, 288.68, 382.44,
-    461.40, 511.84, 563.56, 522.25, 585.75, 364.38, 153.43, 6.26, 11.42, -8.78,
-    18.52, 5.09, -3.26, 1.91
-]  # example: first 24 hours
+
+#test case
+user_region = "Pacific Coast"
+region_ghi = df[df['region'] == user_region]['forecasted_ghi'].values
 
 result = solar_roi_analysis_region(
-    city="San Diego",
-    state="CA",
-    region="Pacific Coast",
-    hourly_ghi=hourly_ghi_example,
+    region = user_region,
+    hourly_ghi= region_ghi,
     panel_wattage=400,
-    num_panels=20,
+    num_panels= 'Medium',
     performance_loss=0.2,
     degradation_rate=0.005,
     system_lifetime=25
 )
 
 print(result)
-#{'City': 'San Diego', 'State': 'CA', 'Annual_Production': 25892.288, 'Payback_Years': 5, 'ROI': 4.859590551439614}
+#{'Region': 'Pacific Coast', 'Annual_Production': 815737.4398754122, 'Payback_Years': 1, 'ROI': 183.60660545524235}
