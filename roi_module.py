@@ -74,9 +74,9 @@ def solar_roi_analysis_region(
 
     result = {
         "Region": region,
-        "Annual_Production": annual_production,
-        "Payback_Years": payback_year,
-        "ROI": roi
+        "Annual_Production": annual_production, # kWh produced in year 1
+        "Payback_Years": payback_year, # the year when installation cost recovered
+        "ROI": roi # lifetime ROI over 25 years (~183× installation cost)
     }
 
     return result
