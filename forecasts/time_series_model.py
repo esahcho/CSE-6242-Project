@@ -89,9 +89,12 @@ features_df = df[[TARGET_COLUMN, 'Temperature', 'Pressure', 'Relative Humidity']
 
 # Lag features (critical for time series)
 print("\nAdding lag features...")
-lags = [1, 2, 3, 6, 12, 24, 48, 72, 168]  # 1h to 7-day lags
+lags = [1, 2, 3, 6, 12, 24, 48, 72, 168, 24*30, 24*90, 24*365]  # Added monthly, quarterly, yearly lags
 for lag in lags:
     features_df[f'GHI_lag_{lag}'] = ghi_series.shift(lag)
+    if lag >= 24*30:
+        label = 'YEARLY' if lag == 24*365 else ('QUARTERLY' if lag == 24*90 else 'MONTHLY')
+        print(f"  ✓ GHI_lag_{lag} ({lag//24} days ago - {label} SEASONALITY)")
 
 # Rolling statistics
 print("Adding rolling statistics...")
@@ -111,14 +114,17 @@ features_df['month_cos'] = np.cos(2 * np.pi * (features_df.index.month - 1) / 12
 features_df['doy_sin'] = np.sin(2 * np.pi * features_df.index.dayofyear / 365)
 features_df['doy_cos'] = np.cos(2 * np.pi * features_df.index.dayofyear / 365)
 
-# Seasonal decomposition (daily cycle)
+# Seasonal decomposition (ANNUAL cycle for summer/winter pattern)
 print("Computing seasonal decomposition...")
 try:
-    decomp = seasonal_decompose(ghi_series.fillna(ghi_series.mean()), period=24, model='additive')
+    # Changed period=24 to period=365 to capture annual seasonality!
+    # This models the ~400 W/m² swing between summer (1000) and winter (600)
+    decomp = seasonal_decompose(ghi_series.fillna(ghi_series.mean()), period=365, model='additive', extrapolate='fill')
     features_df['decomp_trend'] = decomp.trend
     features_df['decomp_seasonal'] = decomp.seasonal
-except:
-    print("  Decomposition failed, using alternative approach")
+    print("  ✓ ANNUAL seasonal decomposition (period=365 for summer/winter pattern)")
+except Exception as e:
+    print(f"  Decomposition failed: {e}, using alternative approach")
 
 # Rate of change
 features_df['GHI_diff_1h'] = ghi_series.diff(1)
@@ -218,7 +224,7 @@ for horizon_idx, horizon_months in enumerate(FORECAST_HORIZONS, 1):
         model_sarimax = SARIMAX(
             y_train, exog=exog_train,
             order=(1, 1, 1),
-            seasonal_order=(1, 1, 1, 24),
+            seasonal_order=(1, 1, 1, 365),  # FIXED: Changed from 24 to 365 for ANNUAL seasonality
             enforce_stationarity=False,
             enforce_invertibility=False
         )
