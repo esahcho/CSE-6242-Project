@@ -19,3 +19,13 @@ REGION_COLORS = {
     "Midwest":          "#6A994E",
     "Pacific Northwest":"#264653",
 }
+
+CITY_REGIONS = {
+ 'Phoenix': {'state': 'AZ', 'region': 'Desert'},
+ 'Los Angeles': {'state': 'CA', 'region': 'Pacific Coast'},
+ 'Atlanta': {'state': 'GA', 'region': 'South'},
+ 'Chicago': {'state': 'IL', 'region': 'Midwest'},
+ 'Boston': {'state': 'MA', 'region': 'Northeast'},
+ 'Denver': {'state': 'CO', 'region': 'Southwest'},
+ 'Seattle': {'state': 'WA', 'region': 'Pacific Coast'}
+}
