@@ -3,3 +3,20 @@ __pycache__/
 *.py[cod]
 *.class
 .DS_Store
+
+# Python environments
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code settings
+.vscode/
+
+# OS files
+.DS_Store
