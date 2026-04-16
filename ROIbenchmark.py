@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from roi_module import solar_roi_analysis_region
 
-df = pd.read_parquet("gradient_boost_final_cleaned.parquet")
+df = pd.read_parquet("tft_forecasts_final_cleaned.parquet")
 
 REGIONAL_PRICES = {
     "Pacific Coast": 26.44570043 / 100,
@@ -124,7 +124,7 @@ for region in pvwatts_kwh_5kw.keys():
 
     model_result = solar_roi_analysis_region(
         region=region,
-        hourly_ghi=df[df["region"] == region]["actual_ghi"].values,
+        hourly_ghi=df[df["region"] == region]["ghi"].values,
         num_panels="Medium"
     )
 

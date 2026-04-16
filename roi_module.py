@@ -1,7 +1,7 @@
 
 import pandas as pd
 
-df = pd.read_parquet("gradient_boost_final_cleaned.parquet")
+df = pd.read_parquet("tft_forecasts_final_cleaned.parquet")
 
 # Regional electricity prices in $/kWh
 REGIONAL_PRICES = {
@@ -31,6 +31,9 @@ PANEL_SIZE = {
     "Large": 30
 }
 
+#--------------------------------
+#ROI calculation function
+#-------------------------------
 def solar_roi_analysis_region(
     region,
     hourly_ghi,
@@ -47,15 +50,12 @@ def solar_roi_analysis_region(
 
     #Apply performance losses and Convert irradiance to kWh
     system_efficiency = 1 - performance_loss 
-
     # System size (kW)
     system_size_kw = (panel_wattage * num_panels_count) / 1000
-    
-    ghi_series = pd.Series(hourly_ghi).fillna(0).clip(lower=0)
+
     total_ghi = sum(max(0, g) for g in hourly_ghi)
 
-    # This is the only assumption in the system
-    kwh_per_signal_unit = 0.001  # tune ONCE using historical data
+    kwh_per_signal_unit = 1 / 1000 #GHI is in W/m² → convert to kW/m²
 
     annual_production = (
         total_ghi
@@ -93,14 +93,16 @@ def solar_roi_analysis_region(
     return result
 
 
+#---------------
 #test case
+#--------------
 all_results = []
 regions = ["Pacific Coast", "South", "Desert Southwest", "Mountain", "Northeast", "Midwest", "Pacific Northwest"]
 
 
 for region in regions:
 
-    region_ghi = df[df["region"] == region]["actual_ghi"].dropna().values
+    region_ghi = df[df["region"] == region]["ghi"].dropna().values
 
     # skip empty regions (important safety)
     if len(region_ghi) == 0:
@@ -114,7 +116,7 @@ for region in regions:
         num_panels="Medium",
         performance_loss=0.2,
         degradation_rate=0.005,
-        system_lifetime=25
+        system_lifetime=35
     )
 
     result["Region"] = region
@@ -127,14 +129,14 @@ print("\n=== ROI RESULTS (ALL REGIONS) ===\n")
 print(results_df)
 
 '''
-results:
+=== ROI RESULTS (ALL REGIONS) ===
 
-   Annual_Production  Payback_Years        ROI             Region
-0         50375.8144              3  10.400369      Pacific Coast
-1         43766.5024              7   2.876050              South
-2         54339.7888              4   5.143889   Desert Southwest
-3         45884.9472              6   3.259083           Mountain
-4         36816.1920              5   4.396892          Northeast
-5         36355.3984              8   2.177563            Midwest
-6         34093.4912             10   1.430210  Pacific Northwest
+   Annual_Production  Payback_Years       ROI             Region
+0       14799.580714              8  4.166333      Pacific Coast
+1       13285.876268             22  0.814989              South
+2       15860.074430             14  1.766093   Desert Southwest
+3       13903.602963             20  0.990716           Mountain
+4       11512.899821             15  1.603309          Northeast
+5       11392.519403             26  0.535965            Midwest
+6       10861.067435             33  0.194211  Pacific Northwest
 '''
