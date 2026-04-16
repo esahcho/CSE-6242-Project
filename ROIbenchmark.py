@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from roi_module import solar_roi_analysis_region
 
-df = pd.read_parquet("gradient_boosting_forecasts.parquet")
+df = pd.read_parquet("gradient_boost_final_cleaned.parquet")
 
 REGIONAL_PRICES = {
     "Pacific Coast": 26.44570043 / 100,
@@ -33,9 +33,9 @@ PANEL_SIZE = {
 
 # PVWATTS-STYLE BENCHMARK ENERGY (kWh/year per region)
 # https://pvwatts.nlr.gov/pvwatts.php
-pvwatts_kwh = {
+pvwatts_kwh_5kw = {
     "Pacific Coast": 6739, #Los angeles
-    "South": 5700, #Houston
+    "South": 5700, #Atlanta
     "Desert Southwest": 7060, #Phoenix
     "Mountain": 6391, #Denver
     "Northeast": 5240, #Boston
@@ -43,16 +43,20 @@ pvwatts_kwh = {
     "Pacific Northwest": 4375 #Seattle
 }
 
+BASE_SYSTEM_KW = 5  # IMPORTANT FIX
 
-# BENCHMARK ROI FUNCTION
-def compute_benchmark_roi(region, num_panels="Small",
-                          system_lifetime=25,
-                          degradation_rate=0.005):
+pvwatts_kwh_per_kw = {
+    k: v / BASE_SYSTEM_KW for k, v in pvwatts_kwh_5kw.items()
+}
+
+
+# BENCHMARK MODEL
+def compute_benchmark_roi(region, system_kw=5, system_lifetime=25, degradation_rate=0.005):
 
     electricity_price = REGIONAL_PRICES[region]
     installation_cost = REGIONAL_INSTALL_COST[region]
 
-    annual_production = pvwatts_kwh[region]
+    annual_production = pvwatts_kwh_per_kw[region] * system_kw
 
     total_savings = 0
     yearly_production = annual_production
@@ -77,24 +81,31 @@ def compute_benchmark_roi(region, num_panels="Small",
     }
 
 
-# MODEL ROI FUNCTION INPUT 
-def extract_model_roi(model_result):
-    return {
-        "Model_ROI": model_result["ROI"],
-        "Model_Payback": model_result["Payback_Years"]
-    }
+# SAFE MODEL EXTRACTION
+def safe_model_output(model_result):
+    roi = model_result.get("ROI", np.nan)
+    payback = model_result.get("Payback_Years", np.nan)
 
+    if roi is None or roi == -1:
+        roi = np.nan
 
-# FULL COMPARISON
-def compare_model_vs_benchmark(model_result, region):
+    if payback is None or payback == -1:
+        payback = np.nan
 
-    benchmark_result = compute_benchmark_roi(region)
+    return roi, payback
 
-    model_roi = model_result["ROI"]
+# COMPARISON
+def compare_model_vs_benchmark(model_result, benchmark_result, region):
+
+    model_roi, model_payback = safe_model_output(model_result)
+
     benchmark_roi = benchmark_result["Benchmark_ROI"]
+    benchmark_payback = benchmark_result["Benchmark_Payback"]
 
     abs_error = abs(model_roi - benchmark_roi)
-    percent_error = (abs_error / benchmark_roi) * 100
+
+    denom = max(abs(benchmark_roi), 1e-6)
+    percent_error = (abs_error / denom) * 100
 
     return {
         "Region": region,
@@ -102,40 +113,45 @@ def compare_model_vs_benchmark(model_result, region):
         "Benchmark_ROI": benchmark_roi,
         "Absolute_Error": abs_error,
         "Percent_Error": percent_error,
-        "Model_Payback": model_result["Payback_Years"],
-        "Benchmark_Payback": benchmark_result["Benchmark_Payback"]
+        "Model_Payback": model_payback,
+        "Benchmark_Payback": benchmark_payback
     }
 
-
-# RUN ACROSS ALL REGIONS
+# RUN EVALUATION
 results = []
 
-for region in pvwatts_kwh.keys():
+for region in pvwatts_kwh_5kw.keys():
 
-    # YOUR MODEL OUTPUT MUST EXIST ALREADY
     model_result = solar_roi_analysis_region(
         region=region,
-        hourly_ghi=df[df["region"] == region]["forecasted_ghi"].values,
+        hourly_ghi=df[df["region"] == region]["actual_ghi"].values,
         num_panels="Medium"
     )
 
-    comparison = compare_model_vs_benchmark(model_result, region)
+    benchmark_result = compute_benchmark_roi(region, system_kw=5)
+
+    comparison = compare_model_vs_benchmark(
+        model_result,
+        benchmark_result,
+        region
+    )
+
     results.append(comparison)
 
 results_df = pd.DataFrame(results)
 
-'''
-# SUMMARY METRICS
-mae = results_df["Absolute_Error"].mean()
-mape = results_df["Percent_Error"].mean()
+
+# CLEAN METRICS
+clean_df = results_df.replace([np.inf, -np.inf], np.nan).dropna()
+
+mae = clean_df["Absolute_Error"].mean()
+mape = clean_df["Percent_Error"].mean()
 
 print("\n=== ROI MODEL vs BENCHMARK ===\n")
-print(results_df)
+print(clean_df)
 
 print("\n=== SUMMARY METRICS ===")
 print("MAE:", mae)
 print("MAPE (%):", mape)
-'''
 
-print(df.head())
-print(df.columns)
+print(df.groupby("region")["actual_ghi"].count())
