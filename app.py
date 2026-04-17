@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from components.map import render_map
 from components.roi_calculator import calculate_roi_data, plot_breakeven
 from data.region_states import REGION_STATES, REGION_COLORS
+from data.panel_sizes import PANEL_SIZES
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -127,12 +128,11 @@ with st.sidebar:
     st.markdown("Controls")
     st.markdown("---")
 
-    num_panels = st.slider(
-        "Number of Solar Panels (400W)",
-        min_value=1,
-        max_value=100,
-        value=20,
-        step=1,
+    size_options = list(PANEL_SIZES.keys())
+    num_panels = st.selectbox(
+        "Region",
+        options=size_options,
+        index=0,
     )
 
     st.markdown("")
@@ -150,7 +150,7 @@ with st.sidebar:
     
     st.markdown("Financials")
     monthly_bill = st.slider("Monthly Electric Bill ($)", 50, 500, 150, step=10)
-    system_cost = st.number_input("System Cost ($)", min_value=0, value=(num_panels*800), step=500)
+    system_cost = st.number_input("System Cost ($)", min_value=0, value=(PANEL_SIZES[num_panels]*800), step=500)
 
     st.markdown("---")
 
@@ -188,7 +188,7 @@ with info_col:
     st.markdown(
         f'<div class="stat-card">'
         f'<div class="stat-label">Panel Count</div>'
-        f'<div class="stat-value">{num_panels}</div>'
+        f'<div class="stat-value">{PANEL_SIZES[num_panels]}</div>'
         f"</div>",
         unsafe_allow_html=True,
     )
@@ -221,7 +221,7 @@ st.markdown(
 )
 
 if selected_region:
-    roi_data = calculate_roi_data(monthly_bill, system_cost, num_panels, selected_region)
+    roi_data = calculate_roi_data(monthly_bill, system_cost, PANEL_SIZES[num_panels], selected_region)
     
     st.plotly_chart(
         plot_breakeven(roi_data, selected_region),

@@ -29,3 +29,5 @@ CITY_REGIONS = {
  'Denver': {'state': 'CO', 'region': 'Southwest'},
  'Seattle': {'state': 'WA', 'region': 'Pacific Coast'}
 }
+
+
