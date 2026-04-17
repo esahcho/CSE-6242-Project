@@ -33,10 +33,20 @@ st.markdown(
     section[data-testid="stSidebar"] {
         background-color: #10101f !important;
         border-right: 1px solid #1e1e3a;
+        display: block !important;
+        visibility: visible !important;
     }
     section[data-testid="stSidebar"] * {
         font-family: 'Share Tech Mono', monospace !important;
         color: #c0c0e8 !important;
+    }
+    
+    /* Hide sidebar collapse button and tooltip */
+    button[data-testid="stIconMaterial"],
+    button[data-testid="baseButton-headerNoPadding"],
+    [data-testid="stIconMaterial"] {
+        display: none !important;
+        visibility: hidden !important;
     }
 
     /* Title */
@@ -157,18 +167,9 @@ with st.sidebar:
 
     if selected_region:
         accent = REGION_COLORS[selected_region]
-        st.markdown(
-            f'<div class="region-badge" style="background:{accent}22; '
-            f'border:1px solid {accent}; color:{accent};">'
-            f"▶ {selected_region}</div>",
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f"**{len(REGION_STATES[selected_region])} states** included",
-        )
-        st.markdown(" · ".join(REGION_STATES[selected_region]))
     else:
         st.caption("Select a region to highlight it on the map and generate plots.")
+
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 st.markdown(
