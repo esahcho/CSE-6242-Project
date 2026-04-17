@@ -30,4 +30,13 @@ CITY_REGIONS = {
  'Seattle': {'state': 'WA', 'region': 'Pacific Coast'}
 }
 
-
+CITY_MAP = {
+    "Pacific Coast": "Los Angeles",
+    "South": "Atlanta",
+    "Desert": "Phoenix",
+    "Southwest": "Phoenix",
+    "Mountain": "Denver",
+    "Northeast": "Boston",
+    "Midwest": "Chicago",
+    "Pacific Northwest": "Seattle"
+}

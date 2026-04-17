@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from components.map import render_map
 from components.roi_calculator import calculate_roi_data, plot_breakeven
+from components.forecasting import plot_forecast_data
 from data.region_states import REGION_STATES, REGION_COLORS
 from data.panel_sizes import PANEL_SIZES
 
@@ -42,7 +43,7 @@ st.markdown(
     .dashboard-title {
         font-family: 'Syne', sans-serif;
         font-weight: 800;
-        font-size: 2.2rem;
+        font-size: 2.2rem !important;
         letter-spacing: -0.5px;
         background: linear-gradient(90deg, #7c7cff 0%, #c084fc 60%, #38bdf8 100%);
         -webkit-background-clip: text;
@@ -223,11 +224,21 @@ st.markdown(
 if selected_region:
     roi_data = calculate_roi_data(monthly_bill, system_cost, PANEL_SIZES[num_panels], selected_region)
     
-    st.plotly_chart(
-        plot_breakeven(roi_data, selected_region),
-        use_container_width=True,
-        config={"displayModeBar": False},
-    )
+    plot_col1, plot_col2 = st.columns(2, gap="large")
+    
+    with plot_col1:
+        st.plotly_chart(
+            plot_breakeven(roi_data, selected_region),
+            use_container_width=True,
+            config={"displayModeBar": False},
+        )
+    
+    with plot_col2:
+        st.plotly_chart(
+            plot_forecast_data(selected_region),
+            use_container_width=True,
+            config={"displayModeBar": False},
+        )
     
     m1, m2, m3 = st.columns(3)
     net_savings = roi_data['Utility'].iloc[-1] - roi_data['Solar'].iloc[-1]
@@ -238,6 +249,7 @@ if selected_region:
         st.metric("25-Year Solar Cost", f"${int(roi_data['Solar'].iloc[-1]):,}")
     with m3:
         st.metric("Estimated Net Savings", f"${int(net_savings):,}")
+    
 else:
     st.markdown(
         '<div class="empty-state">'

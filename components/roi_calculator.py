@@ -3,22 +3,11 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 import os
-from data.region_states import REGION_COLORS
+from data.region_states import REGION_COLORS, CITY_MAP
 
 CARD_BG = "#13132a"
 GRID_COLOR = "#1e1e3a"
 TEXT_COLOR = "#e0e0ff"
-
-CITY_MAP = {
-    "Pacific Coast": "Los Angeles",
-    "South": "Atlanta",
-    "Desert": "Phoenix",
-    "Southwest": "Phoenix",
-    "Mountain": "Denver",
-    "Northeast": "Boston",
-    "Midwest": "Chicago",
-    "Pacific Northwest": "Seattle"
-}
 
 def calculate_roi_data(monthly_bill, system_cost, num_panels, region, inflation_rate=0.03):
     city = CITY_MAP.get(region, "Chicago") 
