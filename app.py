@@ -124,7 +124,7 @@ st.markdown(
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### 🗺️ Controls")
+    st.markdown("Controls")
     st.markdown("---")
 
     num_panels = st.slider(
@@ -150,7 +150,7 @@ with st.sidebar:
     
     st.markdown("Financials")
     monthly_bill = st.slider("Monthly Electric Bill ($)", 50, 500, 150, step=10)
-    system_cost = st.number_input("System Cost ($)", min_value=3000, value=(num_panels*800), step=500)
+    system_cost = st.number_input("System Cost ($)", min_value=0, value=(num_panels*800), step=500)
 
     st.markdown("---")
 
