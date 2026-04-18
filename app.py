@@ -141,7 +141,7 @@ with st.sidebar:
 
     size_options = list(PANEL_SIZES.keys())
     num_panels = st.selectbox(
-        "Region",
+        "Installation Size",
         options=size_options,
         index=0,
     )
