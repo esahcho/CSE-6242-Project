@@ -5,7 +5,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from components.map import render_map
 from components.roi_calculator import calculate_roi_data, plot_breakeven
+from components.forecasting import plot_forecast_data
 from data.region_states import REGION_STATES, REGION_COLORS
+from data.panel_sizes import PANEL_SIZES
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -31,17 +33,27 @@ st.markdown(
     section[data-testid="stSidebar"] {
         background-color: #10101f !important;
         border-right: 1px solid #1e1e3a;
+        display: block !important;
+        visibility: visible !important;
     }
     section[data-testid="stSidebar"] * {
         font-family: 'Share Tech Mono', monospace !important;
         color: #c0c0e8 !important;
+    }
+    
+    /* Hide sidebar collapse button and tooltip */
+    button[data-testid="stIconMaterial"],
+    button[data-testid="baseButton-headerNoPadding"],
+    [data-testid="stIconMaterial"] {
+        display: none !important;
+        visibility: hidden !important;
     }
 
     /* Title */
     .dashboard-title {
         font-family: 'Syne', sans-serif;
         font-weight: 800;
-        font-size: 2.2rem;
+        font-size: 2.2rem !important;
         letter-spacing: -0.5px;
         background: linear-gradient(90deg, #7c7cff 0%, #c084fc 60%, #38bdf8 100%);
         -webkit-background-clip: text;
@@ -124,15 +136,14 @@ st.markdown(
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### 🗺️ Controls")
+    st.markdown("Controls")
     st.markdown("---")
 
-    num_panels = st.slider(
-        "Number of Solar Panels (400W)",
-        min_value=1,
-        max_value=100,
-        value=20,
-        step=1,
+    size_options = list(PANEL_SIZES.keys())
+    num_panels = st.selectbox(
+        "Installation Size",
+        options=size_options,
+        index=0,
     )
 
     st.markdown("")
@@ -150,24 +161,15 @@ with st.sidebar:
     
     st.markdown("Financials")
     monthly_bill = st.slider("Monthly Electric Bill ($)", 50, 500, 150, step=10)
-    system_cost = st.number_input("System Cost ($)", min_value=3000, value=(num_panels*800), step=500)
+    system_cost = st.number_input("System Cost ($)", min_value=0, value=(PANEL_SIZES[num_panels]*800), step=500)
 
     st.markdown("---")
 
     if selected_region:
         accent = REGION_COLORS[selected_region]
-        st.markdown(
-            f'<div class="region-badge" style="background:{accent}22; '
-            f'border:1px solid {accent}; color:{accent};">'
-            f"▶ {selected_region}</div>",
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f"**{len(REGION_STATES[selected_region])} states** included",
-        )
-        st.markdown(" · ".join(REGION_STATES[selected_region]))
     else:
         st.caption("Select a region to highlight it on the map and generate plots.")
+
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 st.markdown(
@@ -188,7 +190,7 @@ with info_col:
     st.markdown(
         f'<div class="stat-card">'
         f'<div class="stat-label">Panel Count</div>'
-        f'<div class="stat-value">{num_panels}</div>'
+        f'<div class="stat-value">{PANEL_SIZES[num_panels]}</div>'
         f"</div>",
         unsafe_allow_html=True,
     )
@@ -221,13 +223,23 @@ st.markdown(
 )
 
 if selected_region:
-    roi_data = calculate_roi_data(monthly_bill, system_cost, num_panels, selected_region)
+    roi_data = calculate_roi_data(monthly_bill, system_cost, PANEL_SIZES[num_panels], selected_region)
     
-    st.plotly_chart(
-        plot_breakeven(roi_data, selected_region),
-        use_container_width=True,
-        config={"displayModeBar": False},
-    )
+    plot_col1, plot_col2 = st.columns(2, gap="large")
+    
+    with plot_col1:
+        st.plotly_chart(
+            plot_breakeven(roi_data, selected_region),
+            use_container_width=True,
+            config={"displayModeBar": False},
+        )
+    
+    with plot_col2:
+        st.plotly_chart(
+            plot_forecast_data(selected_region),
+            use_container_width=True,
+            config={"displayModeBar": False},
+        )
     
     m1, m2, m3 = st.columns(3)
     net_savings = roi_data['Utility'].iloc[-1] - roi_data['Solar'].iloc[-1]
@@ -238,6 +250,7 @@ if selected_region:
         st.metric("25-Year Solar Cost", f"${int(roi_data['Solar'].iloc[-1]):,}")
     with m3:
         st.metric("Estimated Net Savings", f"${int(net_savings):,}")
+    
 else:
     st.markdown(
         '<div class="empty-state">'

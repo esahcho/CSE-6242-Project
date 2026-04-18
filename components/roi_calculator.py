@@ -1,35 +1,34 @@
+import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 import os
-from data.region_states import REGION_COLORS
+from data.region_states import REGION_COLORS, CITY_MAP
 
 CARD_BG = "#13132a"
 GRID_COLOR = "#1e1e3a"
 TEXT_COLOR = "#e0e0ff"
 
-CITY_MAP = {
-    "Pacific Coast": "Los Angeles",
-    "South": "Atlanta",
-    "Desert": "Phoenix",
-    "Southwest": "Phoenix",
-    "Mountain": "Denver",
-    "Northeast": "Boston",
-    "Midwest": "Chicago",
-    "Pacific Northwest": "Seattle"
-}
-
 def calculate_roi_data(monthly_bill, system_cost, num_panels, region, inflation_rate=0.03):
-    """Generates the 25-year cumulative cost data using actual ML forecasts."""
     city = CITY_MAP.get(region, "Chicago") 
     
     # Parquet data
     try:
-        df = pd.read_parquet("gradient_boosting_forecasts_by_city.parquet")
+        df = pd.read_parquet("forecasts/gradient_boosting_forecasts_by_city.parquet")
+
         city_data = df[df['city'] == city]
-        total_ghi_3mo = city_data['forecasted_ghi'].sum()
-        annual_ghi_estimate = total_ghi_3mo * 4 
+        
+        city_data['date'] = pd.to_datetime(city_data['date'])
+        forecast_2025 = city_data[city_data['date'].dt.year == 2025]
+        
+        annual_ghi_estimate = forecast_2025['forecasted_ghi'].sum() 
+
+        # # SUCCESS
+        # st.success(f"Successfully loaded ML Data for {city}") 
+        
     except Exception as e:
+        # ERROR
+        # st.error(f"ML Data Error for {city}: {e}") 
         annual_ghi_estimate = 2000000 # if file isn't found
 
     # depreciation constants
@@ -40,6 +39,8 @@ def calculate_roi_data(monthly_bill, system_cost, num_panels, region, inflation_
     # Calculate Energy Production and Utility Rate
     system_capacity_kw = num_panels * panel_wattage_kw
     base_annual_production_kwh = (annual_ghi_estimate / 1000) * performance_ratio * system_capacity_kw
+
+    # st.info(f"DEBUG: Raw GHI = {annual_ghi_estimate:,.0f} | Estimated Production = {base_annual_production_kwh:,.0f} kWh/year")
     
     assumed_monthly_kwh = 900
     local_utility_rate = monthly_bill / assumed_monthly_kwh
