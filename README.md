@@ -10,8 +10,11 @@ The final output is delivered through an interactive Streamlit dashboard that al
 **Team 67**: Benjamin Martinez, Coleman Treadwell, Elizabeth Haenel, Erin Sinah Cho, Shu Hang Leung, Tan Nguyen
 
 ## INSTALLATION
-
-
+ ```bash
+git clone <your-repo-url>
+cd CSE-6242-Project
+pip install -r requirements.txt
+```
 ## EXECUTION
 
 ### Run the Streamlit application
@@ -20,15 +23,19 @@ The final output is delivered through an interactive Streamlit dashboard that al
    ```
 ### How to use the tool:
 1. Open the local Streamlit URL displayed in the terminal.
-2. Select a U.S. region from the interactive choropleth map.
-3. Enter:
-   - City
-   - Size of Solar Panels
-   - 
+2. On the rightside control panel, select:
+   - Installation Size
+   - Region
+   - Monthly Electric Bill ($)
+   - System Cost ($)
 4. View outputs:
-   - Forecasted solar energy production
-   - Estimated savings over time
-   - Payback period (break-even point)
+   - ROI & Financial Analysis
+   - Panel Count
+   - Selected Region
+   - 25-Year Utility Cost
+   - 25-Year Solar Cost
+   - Estimated Net Savings
 5. Explore visualizations including:
-   - Regional solar potential map
-   - Financial burndown chart (cost vs savings over time)
+   - Regional map
+   - 25-year ROI Analysis
+   - Annual forcasted irradiance
