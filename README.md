@@ -36,4 +36,4 @@ pip install -r requirements.txt
 5. Explore visualizations including:
    - Regional map
    - 25-year ROI Analysis
-   - Annual forcasted irradiance
+   - Annual forecasted irradiance
