@@ -7,20 +7,12 @@ These predictions are converted into estimated photovoltaic energy production us
 
 **Team 67**: Benjamin Martinez, Coleman Treadwell, Elizabeth Haenel, Erin Sinah Cho, Shu Hang Leung, Tan Nguyen
 
-## INSTALLATION
- ```bash
-git clone https://github.com/esahcho/CSE-6242-Project.git
-cd CSE-6242-Project
-pip install -r requirements.txt
-```
 ## EXECUTION
 
 ### Run the Streamlit application
- ```bash
-   streamlit run app.py
-   ```
+ https://cse-6242-project-team-67.streamlit.app/
 ### How to use the tool:
-1. Open the local Streamlit URL displayed in the terminal.
+1. Open the local Streamlit URL above.
 2. On the rightside control panel, select:
    - Installation Size
    - Region
