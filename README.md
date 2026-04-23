@@ -13,7 +13,7 @@ These predictions are converted into estimated photovoltaic energy production us
  https://cse-6242-project-team-67.streamlit.app/
 ### How to use the tool:
 1. Open the Streamlit URL above.
-2. On the rightside control panel, select:
+2. On the control panel, select:
    - Installation Size
    - Region
    - Monthly Electric Bill ($)
