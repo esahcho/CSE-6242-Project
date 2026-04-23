@@ -14,7 +14,7 @@ def calculate_roi_data(monthly_bill, system_cost, num_panels, region, inflation_
     
     # Parquet data
     try:
-        df = pd.read_parquet("forecasts/gradient_boosting_forecasts_by_city.parquet")
+        df = pd.read_parquet("forecasts/tft_forecasts_by_city.parquet")
 
         city_data = df[df['city'] == city]
         
