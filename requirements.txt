@@ -10,3 +10,5 @@ jupyter>=1.0.0
 ipykernel>=6.20.0
 streamlit>=1.32.0
 plotly>=5.20.0
+torch>=2.0.0
+pytorch-lightning>=2.0.0
