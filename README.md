@@ -9,7 +9,7 @@ These predictions are converted into estimated photovoltaic energy production us
 
 ## INSTALLATION
  ```bash
-git clone <your-repo-url>
+git clone https://github.com/esahcho/CSE-6242-Project.git
 cd CSE-6242-Project
 pip install -r requirements.txt
 ```
