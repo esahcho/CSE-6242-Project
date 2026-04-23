@@ -8,10 +8,12 @@ This project is an interactive solar energy decision-support tool that forecasts
 These predictions are converted into estimated photovoltaic energy production using standard assumptions such as system size, performance ratio, and degradation rate. The resulting energy estimates are used to compute long-term financial outcomes including cost savings, return on investment (ROI), and payback period. The system is deployed as an interactive Streamlit dashboard.
 
 ## Installation
-run clean_data_eda.ipynb
-run tft_solar_forecast.ipynb
-run MapCityRegion.ipynb
-run roi_calculator.py
+create an account with nrel
+use account to generate api key here: https://developer.nlr.gov/docs/solar/solar-resource-v1/
+run clean_data_eda.ipynb api connection
+run tft_solar_forecast.ipynb using data created in previous step
+run MapCityRegion.ipynb using data created in previous step
+run roi_calculator.py using data created in previous step
 run app.py
 in command line run streamlit app.py
 
